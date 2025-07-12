@@ -27,7 +27,8 @@ from astronaut import Astronaut
 # -----------------------------------------------------------------
 # 1. Task sequence 
 # -----------------------------------------------------------------  
-tasks = list("NNNNNNNNNNRRRRRLLLLLRRRRRHHHRRRRRRRCCCCCRRRRR")  
+tasks = list("NNNNNNNNNNLLLLLRRRRRHHHRRRRRRRNNNNNCCCCCRRRRR")  
+#tasks = list("NNNNNEEEEERRRRR") 
 
 # -----------------------------------------------------------------
 # 2. Initialise astronaut and logging table

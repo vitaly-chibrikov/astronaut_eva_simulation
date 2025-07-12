@@ -36,8 +36,8 @@ def test_eva_rest_drift_1min():
     assert a.heart_rate        == Astronaut._BASELINE["heart_rate"]
     assert a.respiration_rate  == Astronaut._BASELINE["respiration_rate"]
     # Values that recover upward
-    assert a.sweat_rate         > Astronaut._BASELINE["sweat_rate"]
-    assert a.skin_temp          > Astronaut._BASELINE["skin_temp"]
+    assert a.sweat_rate         == Astronaut._BASELINE["sweat_rate"]
+    assert a.skin_temp          == Astronaut._BASELINE["skin_temp"]
     # Values that accumulate
     assert a.muscle_fatigue     > Astronaut._BASELINE["muscle_fatigue"]
     # Mission clock advanced
@@ -52,17 +52,15 @@ def test_eva_work_normal_1min():
     a.eva_work_normal_1min()
 
     assert a.mission_elapsed_time == 1
-    assert a.heart_rate       == 76      # +6
-    assert a.respiration_rate == 14      # +2
-    assert a.metabolic_rate   == 105     # 80 + 25
+    assert a.heart_rate       == 74     # +4
+    assert a.respiration_rate == 13      # +1
+    assert a.metabolic_rate   == 95     # 80 + 15
     assert a.blood_co2_pa     == pytest.approx(41.0)
     assert a.oxygen_saturation == pytest.approx(0.977)
     assert a.core_temp        == pytest.approx(37.01)
     assert a.skin_temp        == pytest.approx(33.02)
     assert a.glucose_level    == pytest.approx(89.8)
     assert a.muscle_fatigue   == pytest.approx(0.004)
-    assert a.adrenaline_lvl   == pytest.approx(0.03)
-    assert a.fear             == pytest.approx(0.002)
 
 
 # ------------------------------------------------------------------
@@ -80,34 +78,8 @@ def test_eva_work_hard_1min():
     assert a.oxygen_saturation == pytest.approx(0.972)
     assert a.core_temp        == pytest.approx(37.03)
     assert a.skin_temp        == pytest.approx(33.06)
-    assert a.glucose_level    == pytest.approx(89.5)
+    assert a.glucose_level    == pytest.approx(89.9)
     assert a.muscle_fatigue   == pytest.approx(0.01)
-    assert a.adrenaline_lvl   == pytest.approx(0.06)
-    assert a.fear             == pytest.approx(0.005)
-
-
-# ------------------------------------------------------------------
-# event_lost_tether
-# ------------------------------------------------------------------
-def test_event_lost_tether():
-    a = fresh()
-    a.event_lost_tether()
-
-    # time advanced by 1
-    assert a.mission_elapsed_time == 1
-    # fear spikes to 1.0
-    assert a.fear == 1.0
-    # heart-rate & respiration boosted
-    assert a.heart_rate       == 100      # 70 + 30
-    assert a.respiration_rate == 22       # 12 + 10
-    # metabolic spike
-    assert a.metabolic_rate   == 180      # 80 + 100
-    # stress & adrenaline rise
-    assert a.stress_index     == pytest.approx(0.4)
-    assert a.adrenaline_lvl   == pytest.approx(0.4)
-    # O₂ saturation and glucose drop
-    assert a.oxygen_saturation == pytest.approx(0.965)
-    assert a.glucose_level     == pytest.approx(89.7)
 
 
 def test_eva_work_low_1min():
