@@ -24,10 +24,10 @@ class Astronaut:
         sweat_rate=0.0,               # g/h
         glucose_level=90.0,           # mg/dL
 
-        # Progressive Load
-        muscle_fatigue=0.0,           # 0–1
-        cognitive_load=0.0,           # 0–1
-        stress_index=0.0,             # 0–1
+        # Progressive Load. Go lower only at rest.
+        muscle_fatigue=0.0,           # 0–100
+        cognitive_load=0.0,           # 0–100
+        stress_index=0.0,             # 0–100
 
         # TODO
         # fear
@@ -37,32 +37,32 @@ class Astronaut:
 
     _BASELINE_NORMAL: ClassVar[dict] = dict(
         heart_rate=110.0,               
-        blood_pressure_sys=125.0,       
-        blood_pressure_dia=80.2,       
+        blood_pressure_sys=122.0,       
+        blood_pressure_dia=82,       
         respiration_rate=22.0,          
         oxygen_saturation=0.95,         
         blood_o2_pa=93.0,               
         blood_co2_pa=50.0,              
         metabolic_rate=230.0,           
-        core_temp=37.1,                 
+        core_temp=37.5,                 
         skin_temp=33.2,                 
         sweat_rate=0.2,                 
-        glucose_level=88.0,             
+        glucose_level=85.0,             
     )
 
     _BASELINE_HARD: ClassVar[dict] = dict(
         heart_rate=160,
         respiration_rate=30,
         metabolic_rate=330,
-        blood_pressure_sys=130,
+        blood_pressure_sys=125,
         blood_pressure_dia=85,
         blood_o2_pa=90,
         blood_co2_pa=57.5,
         oxygen_saturation=0.94,
-        core_temp=37.15,
+        core_temp=38,
         skin_temp=33.3,
         sweat_rate=0.35,
-        glucose_level=85,
+        glucose_level=80,
     )   
 
     _BASELINE_LOW: ClassVar[dict] = dict(
@@ -74,14 +74,14 @@ class Astronaut:
         blood_o2_pa=94.0,            
         blood_co2_pa=45.0,           
         oxygen_saturation=0.975,     
-        core_temp=37.05,            
+        core_temp=37.2,            
         skin_temp=33.2,              
         sweat_rate=0.1,              
-        glucose_level=89.0          
+        glucose_level=87.0          
     )
 
     _BASELINE_COGNITIVE: ClassVar[dict] = dict(
-        heart_rate=80.0,
+        heart_rate=90.0,
         respiration_rate=14.0,
         metabolic_rate=110.0,
         blood_pressure_sys=120,
@@ -92,19 +92,19 @@ class Astronaut:
         core_temp=37.03,
         skin_temp=33.05,
         sweat_rate=0.05,
-        glucose_level=89.2
+        glucose_level=87.0
     )
 
     _BASELINE_EMERGENCY: ClassVar[dict] = dict(
-        heart_rate=130.0,
+        heart_rate=150.0,
         respiration_rate=30.0,
         metabolic_rate=280.0,
-        blood_pressure_sys=125.0,
-        blood_pressure_dia=85.0,
+        blood_pressure_sys=130.0,
+        blood_pressure_dia=90.0,
         blood_o2_pa=90.0,
         blood_co2_pa=50.0,
         oxygen_saturation=0.92,
-        core_temp=37.20,
+        core_temp=37.5,
         skin_temp=33.30,
         sweat_rate=0.30,
         glucose_level=87.5
@@ -134,9 +134,9 @@ class Astronaut:
         skin_temp=(28.0, 36.0),             # °C (varies with suit environment)
         sweat_rate=(0.0, 2.0),              # g/h (typical inside suit)
         glucose_level=(60.0, 180.0),        # mg/dL (hypo- to hyperglycemia)
-        muscle_fatigue=(0.0, 1.0),          # normalized
-        cognitive_load=(0.0, 1.0),          # normalized
-        stress_index=(0.0, 1.0),            # normalized
+        muscle_fatigue=(0.0, 100),          # normalized
+        cognitive_load=(0.0, 100),          # normalized
+        stress_index=(0.0, 100),            # normalized
     )
 
     # === Dynamic physiologic fields (initialised from _BASELINE) =
@@ -211,209 +211,241 @@ class Astronaut:
             setattr(self, key, value)
 
     # -----------------------------------------------------------------
-    # Drift toward basic BASELINE (rest) for 1 minute
+    # Drift toward basic rest BASELINE
     # -----------------------------------------------------------------
-    def eva_rest_drift_1min(self) -> None:
+    def eva_rest_drift(self, minutes=1) -> None:
         """
         Advance simulation by one minute of resting in the suit.
         Includes physiological recovery effects.
         """
-        self.mission_elapsed_time += 1
 
-        # Homeostatic variables recover toward baseline
-        self._toward_target("heart_rate",         self._BASELINE["heart_rate"],         delta=5.0)
-        self._toward_target("respiration_rate",   self._BASELINE["respiration_rate"],   delta=3.0)
-        self._toward_target("blood_o2_pa",        self._BASELINE["blood_o2_pa"],        delta=0.2)
-        self._toward_target("blood_co2_pa",       self._BASELINE["blood_co2_pa"],       delta=1.0)
-        self._toward_target("metabolic_rate",     self._BASELINE["metabolic_rate"],     delta=10.0)
-        self._toward_target("core_temp",          self._BASELINE["core_temp"],          delta=0.01)
-        self._toward_target("blood_pressure_sys", self._BASELINE["blood_pressure_sys"], delta=0.5)
-        self._toward_target("blood_pressure_dia", self._BASELINE["blood_pressure_dia"], delta=0.5)
-        self._toward_target("oxygen_saturation",  self._BASELINE["oxygen_saturation"],  delta=0.002)
-        self._toward_target("glucose_level",      self._BASELINE["glucose_level"],      delta=0.1)
-        self._toward_target("skin_temp",          self._BASELINE["skin_temp"],          delta=0.02)
-        self._toward_target("sweat_rate",         self._BASELINE["sweat_rate"],         delta=0.005)
+        assert minutes > 0, "Time in munutes should be > 0"
 
-        # Progressive load stays or accumulates slowly (fatigue still slightly increases due to suit burden)
-        self._update("muscle_fatigue", 0.0005)
+        for x in range(1, minutes+1):
+            self.mission_elapsed_time += 1
+
+             # Cardiopulmonary
+            self._toward_target("heart_rate",         self._BASELINE["heart_rate"],         5.0)
+            self._toward_target("respiration_rate",   self._BASELINE["respiration_rate"],   3.0)
+            self._toward_target("metabolic_rate",     self._BASELINE["metabolic_rate"],     10.0)
+            self._toward_target("blood_pressure_sys", self._BASELINE["blood_pressure_sys"], 0.5)
+            self._toward_target("blood_pressure_dia", self._BASELINE["blood_pressure_dia"], 0.5)
+
+            # Gas exchange
+            self._toward_target("blood_o2_pa",        self._BASELINE["blood_o2_pa"],        2.0)
+            self._toward_target("blood_co2_pa",       self._BASELINE["blood_co2_pa"],       1.0)
+            self._toward_target("oxygen_saturation",  self._BASELINE["oxygen_saturation"],  0.002)
+
+            # Thermal
+            self._toward_target("core_temp",          self._BASELINE["core_temp"],          0.01)
+            self._toward_target("skin_temp",          self._BASELINE["skin_temp"],          0.02)
+            self._toward_target("sweat_rate",         self._BASELINE["sweat_rate"],         0.005)
+
+           # Biochemistry
+            self._toward_target("glucose_level",      self._BASELINE["glucose_level"],      0.01)
+
+            # Progressive load stays or accumulates slowly (fatigue still slightly increases due to suit burden)
+            self._update("muscle_fatigue", 0.01)
+
+            # Lower load and stress at rest
+            self._toward_target("cognitive_load", self._BASELINE["cognitive_load"],  0.01)
+            self._toward_target("stress_index",   self._BASELINE["stress_index"],  0.01)
         
 
     # -----------------------------------------------------------------
-    # 1-minute LOW workload  (sustainable >30 min)
+    # LOW workload
     # -----------------------------------------------------------------
-    def eva_work_low_1min(self) -> None:
+    def eva_work_low(self, minutes=1) -> None:
         """
-        One minute of light EVA activity — such as monitoring instruments,
+        Light EVA activity — such as monitoring instruments,
         adjusting small equipment, or observing surroundings. Physically light.
-        Parameters stabilize near LOW_BASELINE after ~10 minutes.
         """
-        self.mission_elapsed_time += 1
+        assert minutes > 0, "Time in munutes should be > 0"
 
-        # Cardiopulmonary
-        self._toward_target("heart_rate",         self._BASELINE_LOW["heart_rate"], 2.0)
-        self._toward_target("respiration_rate",   self._BASELINE_LOW["respiration_rate"], 0.3)
-        self._toward_target("metabolic_rate",     self._BASELINE_LOW["metabolic_rate"], 2.0)
-        self._toward_target("blood_pressure_sys", self._BASELINE["blood_pressure_sys"], 0.5)
-        self._toward_target("blood_pressure_dia", self._BASELINE["blood_pressure_dia"], 0.5)
+        for x in range(1, minutes+1):
+            self.mission_elapsed_time += 1
 
-        # Gas exchange
-        self._toward_target("blood_co2_pa",       self._BASELINE_LOW["blood_co2_pa"], 0.5)
-        self._toward_target("oxygen_saturation",  self._BASELINE_LOW["oxygen_saturation"], 0.001)
+            # Cardiopulmonary
+            self._toward_target("heart_rate",         self._BASELINE_LOW["heart_rate"], 2.0)
+            self._toward_target("respiration_rate",   self._BASELINE_LOW["respiration_rate"], 0.5)
+            self._toward_target("metabolic_rate",     self._BASELINE_LOW["metabolic_rate"], 2.0)
+            self._toward_target("blood_pressure_sys", self._BASELINE["blood_pressure_sys"], 0.5)
+            self._toward_target("blood_pressure_dia", self._BASELINE["blood_pressure_dia"], 0.5)
 
-        # Thermal
-        self._toward_target("core_temp",          self._BASELINE_LOW["core_temp"],  0.002)
-        self._toward_target("skin_temp",          self._BASELINE_LOW["skin_temp"], 0.005)
-        self._toward_target("sweat_rate",         self._BASELINE_LOW["sweat_rate"], 0.005)
+            # Gas exchange
+            self._toward_target("blood_o2_pa",        self._BASELINE_NORMAL["blood_o2_pa"], 0.1)
+            self._toward_target("blood_co2_pa",       self._BASELINE_LOW["blood_co2_pa"], 0.5)
+            self._toward_target("oxygen_saturation",  self._BASELINE_LOW["oxygen_saturation"], 0.001)
 
-        # Biochemistry
-        self._toward_target("glucose_level",      self._BASELINE_LOW["glucose_level"], 0.05)
+            # Thermal
+            self._toward_target("core_temp",          self._BASELINE_LOW["core_temp"],  0.002)
+            self._toward_target("skin_temp",          self._BASELINE_LOW["skin_temp"], 0.005)
+            self._toward_target("sweat_rate",         self._BASELINE_LOW["sweat_rate"], 0.005)
 
-        # Fatigue & cognition (continue to accumulate slowly)
-        self._update("muscle_fatigue",  0.001)
-        self._update("cognitive_load",  0.001)
-        self._update("stress_index",    0.001)
+            # Biochemistry
+            self._toward_target("glucose_level",      self._BASELINE_LOW["glucose_level"], 0.01)
+
+            # Fatigue & cognition (continue to accumulate slowly)
+            self._update("muscle_fatigue",  0.01)
+            self._update("cognitive_load",  0.02)
+            self._update("stress_index",    0.01)
 
     # -----------------------------------------------------------------
-    # 1-minute NORMAL workload  (sustainable ≈15 min)
+    # NORMAL workload 
     # -----------------------------------------------------------------
-    def eva_work_normal_1min(self) -> None:
+    def eva_work_normal(self, minutes=1) -> None:
         """
-        One minute of moderate EVA activity—hand-rail translation,
-        routine tool use. Tuned so 15 consecutive minutes stay
-        within physiological limits.
+        Moderate EVA activity—hand-rail translation, routine tool use.
         """
-        self.mission_elapsed_time += 1
+        assert minutes > 0, "Time in munutes should be > 0"
 
-        # Cardiopulmonary
-        self._toward_target("heart_rate",         self._BASELINE_NORMAL["heart_rate"],         delta=4)
-        self._toward_target("respiration_rate",   self._BASELINE_NORMAL["respiration_rate"],   delta=1)
-        self._toward_target("metabolic_rate",     self._BASELINE_NORMAL["metabolic_rate"],     delta=15)
-        self._toward_target("blood_pressure_sys", self._BASELINE_NORMAL["blood_pressure_sys"], delta=0.5)
-        self._toward_target("blood_pressure_dia", self._BASELINE_NORMAL["blood_pressure_dia"], delta=0.02)
+        for x in range(1, minutes+1):
+            self.mission_elapsed_time += 1
 
-        # Gas exchange
-        self._toward_target("blood_o2_pa",        self._BASELINE_NORMAL["blood_o2_pa"],        delta=0.2)
-        self._toward_target("blood_co2_pa",       self._BASELINE_NORMAL["blood_co2_pa"],       delta=1.0)
-        self._toward_target("oxygen_saturation",  self._BASELINE_NORMAL["oxygen_saturation"],  delta=0.003)
+            # Cardiopulmonary
+            self._toward_target("heart_rate",         self._BASELINE_NORMAL["heart_rate"],         4)
+            self._toward_target("respiration_rate",   self._BASELINE_NORMAL["respiration_rate"],   1)
+            self._toward_target("metabolic_rate",     self._BASELINE_NORMAL["metabolic_rate"],     15)
+            self._toward_target("blood_pressure_sys", self._BASELINE_NORMAL["blood_pressure_sys"], 0.5)
+            self._toward_target("blood_pressure_dia", self._BASELINE_NORMAL["blood_pressure_dia"], 0.2)
 
-        # Thermal load
-        self._toward_target("core_temp",          self._BASELINE_NORMAL["core_temp"],          delta=0.010)
-        self._toward_target("skin_temp",          self._BASELINE_NORMAL["skin_temp"],          delta=0.020)
-        self._toward_target("sweat_rate",         self._BASELINE_NORMAL["sweat_rate"],         delta=0.02)
+            # Gas exchange
+            self._toward_target("blood_o2_pa",        self._BASELINE_NORMAL["blood_o2_pa"],        0.2)
+            self._toward_target("blood_co2_pa",       self._BASELINE_NORMAL["blood_co2_pa"],       1.0)
+            self._toward_target("oxygen_saturation",  self._BASELINE_NORMAL["oxygen_saturation"],  0.003)
 
-        # Biochemical
-        self._toward_target("glucose_level",      self._BASELINE_NORMAL["glucose_level"],      delta=0.20)
+            # Thermal load
+            self._toward_target("core_temp",          self._BASELINE_NORMAL["core_temp"],          0.010)
+            self._toward_target("skin_temp",          self._BASELINE_NORMAL["skin_temp"],          0.020)
+            self._toward_target("sweat_rate",         self._BASELINE_NORMAL["sweat_rate"],         0.02)
 
-        # Progressive load (accumulating)
-        self._update("muscle_fatigue",  0.004)
-        self._update("cognitive_load",  0.004)
-        self._update("stress_index",    0.003)
+            # Biochemical
+            self._toward_target("glucose_level",      self._BASELINE_NORMAL["glucose_level"],      0.20)
 
-
-    # -----------------------------------------------------------------
-    # 1-minute HARD workload  (sustainable ≈5 min)
-    # -----------------------------------------------------------------
-    def eva_work_hard_1min(self) -> None:
-        """
-        One minute of high-intensity EVA exertion—hauling hardware
-        or emergency maneuvering. Tuned so 5 consecutive minutes
-        approach, but do not exceed, safety limits.
-        """
-
-        self.mission_elapsed_time += 1
-
-        # Cardiopulmonary
-        self._toward_target("heart_rate",         self._BASELINE_HARD["heart_rate"],         delta=18)
-        self._toward_target("respiration_rate",   self._BASELINE_HARD["respiration_rate"],   delta=5)
-        self._toward_target("metabolic_rate",     self._BASELINE_HARD["metabolic_rate"],     delta=50)
-        self._toward_target("blood_pressure_sys", self._BASELINE_HARD["blood_pressure_sys"], delta=2.0)
-        self._toward_target("blood_pressure_dia", self._BASELINE_HARD["blood_pressure_dia"], delta=1)
-
-        # Gas exchange
-        self._toward_target("blood_o2_pa",        self._BASELINE_HARD["blood_o2_pa"],        delta=1)
-        self._toward_target("blood_co2_pa",       self._BASELINE_HARD["blood_co2_pa"],       delta=3.5)
-        self._toward_target("oxygen_saturation",  self._BASELINE_HARD["oxygen_saturation"],  delta=0.008)
-
-        # Thermal load
-        self._toward_target("core_temp",          self._BASELINE_HARD["core_temp"],          delta=0.030)
-        self._toward_target("skin_temp",          self._BASELINE_HARD["skin_temp"],          delta=0.060)
-        self._toward_target("sweat_rate",         self._BASELINE_HARD["sweat_rate"],         delta=0.07)
-
-        # Biochemical
-        self._toward_target("glucose_level",      self._BASELINE_HARD["glucose_level"],      delta=0.1)
-
-        # Progressive load (cumulative)
-        self._update("muscle_fatigue",  0.010)
-        self._update("cognitive_load",  0.008)
-        self._update("stress_index",    0.006)
+            # Progressive load (accumulating)
+            self._update("muscle_fatigue",  0.1)
+            self._update("cognitive_load",  0.04)
+            self._update("stress_index",    0.05)
 
 
     # -----------------------------------------------------------------
-    # 1-minute low-physical + cognitive load task
+    # HARD workload 
     # -----------------------------------------------------------------
-    def eva_task_cognitive_1min(self) -> None:
+    def eva_work_hard(self, minutes=1) -> None:
         """
-        One minute of cognitive-intensive task — such as solving engineering
-        problems or making mission-critical decisions under pressure. Physical
-        movement minimal, mental load high.
+        High-intensity EVA exertion—hauling hardware or emergency maneuvering.
         """
-        self.mission_elapsed_time += 1
+        assert minutes > 0, "Time in munutes should be > 0"
 
-        # Slight physical changes toward cognitive task baseline
-        self._toward_target("heart_rate",         self._BASELINE_COGNITIVE["heart_rate"],        1)
-        self._toward_target("respiration_rate",   self._BASELINE_COGNITIVE["respiration_rate"],  0.2)
-        self._toward_target("metabolic_rate",     self._BASELINE_COGNITIVE["metabolic_rate"],    3)
-        self._toward_target("blood_pressure_sys", self._BASELINE_COGNITIVE["blood_pressure_sys"], 0.1)
+        for x in range(1, minutes+1):
 
-        # Minimal thermal effect
-        self._toward_target("core_temp",          self._BASELINE_COGNITIVE["core_temp"],         0.003)
-        self._toward_target("skin_temp",          self._BASELINE_COGNITIVE["skin_temp"],         0.005)
-        self._toward_target("sweat_rate",         self._BASELINE_COGNITIVE["sweat_rate"],        0.005)
+            self.mission_elapsed_time += 1
 
-        # Gas exchange
-        self._toward_target("blood_o2_pa",        self._BASELINE_COGNITIVE["blood_o2_pa"],       0.1)
-        self._toward_target("blood_co2_pa",       self._BASELINE_COGNITIVE["blood_co2_pa"],      0.1)
+            # Cardiopulmonary
+            self._toward_target("heart_rate",         self._BASELINE_HARD["heart_rate"],         9)
+            self._toward_target("respiration_rate",   self._BASELINE_HARD["respiration_rate"],   2.5)
+            self._toward_target("metabolic_rate",     self._BASELINE_HARD["metabolic_rate"],     25)
+            self._toward_target("blood_pressure_sys", self._BASELINE_HARD["blood_pressure_sys"], 1.0)
+            self._toward_target("blood_pressure_dia", self._BASELINE_HARD["blood_pressure_dia"], 0.5)
 
-        # Glucose depletion
-        self._toward_target("glucose_level",      self._BASELINE_COGNITIVE["glucose_level"],     0.08)
+            # Gas exchange
+            self._toward_target("blood_o2_pa",        self._BASELINE_HARD["blood_o2_pa"],        0.5)
+            self._toward_target("blood_co2_pa",       self._BASELINE_HARD["blood_co2_pa"],       1.8)
+            self._toward_target("oxygen_saturation",  self._BASELINE_HARD["oxygen_saturation"],  0.004)
 
-        # Progressive load (mental strain)
-        self._update("cognitive_load",  0.05)
-        self._update("stress_index",    0.02)
-        self._update("muscle_fatigue",  0.0005)
+            # Thermal load
+            self._toward_target("core_temp",          self._BASELINE_HARD["core_temp"],          0.015)
+            self._toward_target("skin_temp",          self._BASELINE_HARD["skin_temp"],          0.020)
+            self._toward_target("sweat_rate",         self._BASELINE_HARD["sweat_rate"],         0.035)
+
+            # Biochemical
+            self._toward_target("glucose_level",      self._BASELINE_HARD["glucose_level"],      0.5)
+    
+            # Progressive load (cumulative)
+            self._update("muscle_fatigue",  0.5)
+            self._update("cognitive_load",  0.04)
+            self._update("stress_index",    0.1)
 
 
-    def eva_emergency_response_1min(self) -> None:
+    # -----------------------------------------------------------------
+    #  Cognitive load (low-physical) task
+    # -----------------------------------------------------------------
+    def eva_task_cognitive(self, minutes=1) -> None:
         """
-        One minute of high-stress emergency handling (e.g., seal breach, hardware failure).
+        Cognitive-intensive task — such as solving engineering
+        problems or making mission-critical decisions under pressure. 
+        Physical movement minimal, mental load high.
+        """
+
+        assert minutes > 0, "Time in munutes should be > 0"
+
+        for x in range(1, minutes+1):
+
+            self.mission_elapsed_time += 1
+
+            # Slight physical changes toward cognitive task baseline
+            self._toward_target("heart_rate",         self._BASELINE_COGNITIVE["heart_rate"],        1)
+            self._toward_target("respiration_rate",   self._BASELINE_COGNITIVE["respiration_rate"],  2)
+            self._toward_target("metabolic_rate",     self._BASELINE_COGNITIVE["metabolic_rate"],    3)
+            self._toward_target("blood_pressure_sys", self._BASELINE_COGNITIVE["blood_pressure_sys"], 0.1)
+            self._toward_target("blood_pressure_dia", self._BASELINE_HARD["blood_pressure_dia"], 0.1)
+
+            # Gas exchange
+            self._toward_target("blood_o2_pa",        self._BASELINE_COGNITIVE["blood_o2_pa"],       0.1)
+            self._toward_target("blood_co2_pa",       self._BASELINE_COGNITIVE["blood_co2_pa"],      0.1)
+            self._toward_target("oxygen_saturation",  self._BASELINE_LOW["oxygen_saturation"],       0.001)
+
+            # Minimal thermal effect
+            self._toward_target("core_temp",          self._BASELINE_COGNITIVE["core_temp"],         0.003)
+            self._toward_target("skin_temp",          self._BASELINE_COGNITIVE["skin_temp"],         0.005)
+            self._toward_target("sweat_rate",         self._BASELINE_COGNITIVE["sweat_rate"],        0.005)
+
+            # Glucose depletion
+            self._toward_target("glucose_level",      self._BASELINE_COGNITIVE["glucose_level"],     0.08)
+
+            # Progressive load (mental strain)
+            self._update("muscle_fatigue",  0.01)
+            self._update("cognitive_load",  0.7)
+            self._update("stress_index",    0.05)
+
+
+
+    def eva_emergency_response(self, minutes) -> None:
+        """
+        High-stress emergency handling (e.g., seal breach, hardware failure).
         Physically moderate, but cognitively demanding and emotionally taxing.
         """
-        self.mission_elapsed_time += 1
+        assert minutes > 0, "Time in munutes should be > 0"
 
-        # Cardiopulmonary response
-        self._toward_target("heart_rate",         self._BASELINE_EMERGENCY["heart_rate"],        6)
-        self._toward_target("respiration_rate",   self._BASELINE_EMERGENCY["respiration_rate"],  2)
-        self._toward_target("metabolic_rate",     self._BASELINE_EMERGENCY["metabolic_rate"],    20)
-        self._toward_target("blood_pressure_sys", self._BASELINE_EMERGENCY["blood_pressure_sys"], 0.5)
-        self._toward_target("blood_pressure_dia", self._BASELINE_EMERGENCY["blood_pressure_dia"], 0.5)
+        for x in range(1, minutes+1):
 
-        # Thermal & metabolic
-        self._toward_target("core_temp",    self._BASELINE_EMERGENCY["core_temp"],    0.02)
-        self._toward_target("skin_temp",    self._BASELINE_EMERGENCY["skin_temp"],    0.03)
-        self._toward_target("sweat_rate",   self._BASELINE_EMERGENCY["sweat_rate"],   0.03)
+            self.mission_elapsed_time += 1
 
-        # Gas exchange
-        self._toward_target("blood_o2_pa",       self._BASELINE_EMERGENCY["blood_o2_pa"],      0.5)
-        self._toward_target("blood_co2_pa",      self._BASELINE_EMERGENCY["blood_co2_pa"],     2.0)
-        self._toward_target("oxygen_saturation", self._BASELINE_EMERGENCY["oxygen_saturation"], 0.006)
+            # Cardiopulmonary response
+            self._toward_target("heart_rate",         self._BASELINE_EMERGENCY["heart_rate"],        6)
+            self._toward_target("respiration_rate",   self._BASELINE_EMERGENCY["respiration_rate"],  2)
+            self._toward_target("metabolic_rate",     self._BASELINE_EMERGENCY["metabolic_rate"],    20)
+            self._toward_target("blood_pressure_sys", self._BASELINE_EMERGENCY["blood_pressure_sys"], 0.5)
+            self._toward_target("blood_pressure_dia", self._BASELINE_EMERGENCY["blood_pressure_dia"], 0.5)
 
-        # Biochemistry
-        self._toward_target("glucose_level", self._BASELINE_EMERGENCY["glucose_level"], 0.25)
+            # Thermal & metabolic
+            self._toward_target("core_temp",    self._BASELINE_EMERGENCY["core_temp"],    0.02)
+            self._toward_target("skin_temp",    self._BASELINE_EMERGENCY["skin_temp"],    0.03)
+            self._toward_target("sweat_rate",   self._BASELINE_EMERGENCY["sweat_rate"],   0.03)
 
-        # Progressive load (mental/physical toll)
-        self._update("cognitive_load",  0.015)
-        self._update("stress_index",    0.05)
-        self._update("muscle_fatigue",  0.004)
+            # Gas exchange
+            self._toward_target("blood_o2_pa",       self._BASELINE_EMERGENCY["blood_o2_pa"],      0.5)
+            self._toward_target("blood_co2_pa",      self._BASELINE_EMERGENCY["blood_co2_pa"],     2.0)
+            self._toward_target("oxygen_saturation", self._BASELINE_EMERGENCY["oxygen_saturation"], 0.006)
+
+            # Biochemistry
+            self._toward_target("glucose_level", self._BASELINE_EMERGENCY["glucose_level"], 0.25)
+
+            # Progressive load (mental/physical toll)
+            self._update("muscle_fatigue",  0.04)
+            self._update("cognitive_load",  0.15)
+            self._update("stress_index",    0.5)
+
 
 
 

@@ -1,3 +1,7 @@
+# ------------------------------------------------------------------
+# > pytest
+# ------------------------------------------------------------------
+
 import pytest
 from astronaut import Astronaut
 
@@ -27,10 +31,10 @@ def test_reset_to_rest():
 # ------------------------------------------------------------------
 # eva_rest_drift_1min
 # ------------------------------------------------------------------
-def test_eva_rest_drift_1min():
+def test_eva_rest_drift():
     a = fresh()
     # run one minute of rest
-    a.eva_rest_drift_1min()
+    a.eva_rest_drift(1)
 
     # Values that should remain at baseline (cannot go lower)
     assert a.heart_rate        == Astronaut._BASELINE["heart_rate"]
@@ -47,9 +51,9 @@ def test_eva_rest_drift_1min():
 # ------------------------------------------------------------------
 # eva_work_normal_1min
 # ------------------------------------------------------------------
-def test_eva_work_normal_1min():
+def test_eva_work_normal():
     a = fresh()
-    a.eva_work_normal_1min()
+    a.eva_work_normal(1)
 
     assert a.mission_elapsed_time == 1
     assert a.heart_rate       == 74     # +4
@@ -60,37 +64,37 @@ def test_eva_work_normal_1min():
     assert a.core_temp        == pytest.approx(37.01)
     assert a.skin_temp        == pytest.approx(33.02)
     assert a.glucose_level    == pytest.approx(89.8)
-    assert a.muscle_fatigue   == pytest.approx(0.004)
+    assert a.muscle_fatigue   == pytest.approx(0.1)
 
 
 # ------------------------------------------------------------------
 # eva_work_hard_1min
 # ------------------------------------------------------------------
-def test_eva_work_hard_1min():
+def test_eva_work_hard():
     a = fresh()
-    a.eva_work_hard_1min()
+    a.eva_work_hard(1)
 
     assert a.mission_elapsed_time == 1
-    assert a.heart_rate       == 88      # +18
-    assert a.respiration_rate == 17      # 12 + 5
-    assert a.metabolic_rate   == 130     # 80 + 50
-    assert a.blood_co2_pa     == pytest.approx(43.5)
-    assert a.oxygen_saturation == pytest.approx(0.972)
-    assert a.core_temp        == pytest.approx(37.03)
-    assert a.skin_temp        == pytest.approx(33.06)
-    assert a.glucose_level    == pytest.approx(89.9)
-    assert a.muscle_fatigue   == pytest.approx(0.01)
+    assert a.heart_rate       == 79     
+    assert a.respiration_rate == 14.5      
+    assert a.metabolic_rate   == 105    
+    assert a.blood_co2_pa     == pytest.approx(41.8)
+    assert a.oxygen_saturation == pytest.approx(0.976)
+    assert a.core_temp        == pytest.approx(37.015)
+    assert a.skin_temp        == pytest.approx(33.02)
+    assert a.glucose_level    == pytest.approx(89.5)
+    assert a.muscle_fatigue   == pytest.approx(0.5)
 
 
-def test_eva_work_low_1min():
+def test_eva_work_low():
     a = Astronaut()
-    a.eva_work_low_1min()
+    a.eva_work_low(1)
     assert a.heart_rate == 72
     assert a.glucose_level < Astronaut._BASELINE["glucose_level"]
 
-def test_eva_task_cognitive_1min():
+def test_eva_task_cognitive():
     a = Astronaut()
-    a.eva_task_cognitive_1min()
+    a.eva_task_cognitive(1)
     assert a.cognitive_load > Astronaut._BASELINE["cognitive_load"]
     assert a.metabolic_rate > Astronaut._BASELINE["metabolic_rate"]
 

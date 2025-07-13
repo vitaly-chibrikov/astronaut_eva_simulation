@@ -1,0 +1,46 @@
+Period,EVA-1 Type,EVA-1 Description,EVA-2 Type,EVA-2 Description
+1,N,Initial positioning and tool check,N,Initial positioning and tool check
+2,H,Panel mount begin,L,Monitoring EVA-1
+3,H,Cable routing and anchoring,L,Observing and prep
+4,N,Tool handoff,H,Securing cabling
+5,L,Brief micro-rest,H,Finishing bolt torque
+6,L,Suit check,C,Begin diagnostics
+7,C,Voltage readout verification,L,Monitoring EVA-1
+8,C,Alignment config,C,System diagnostics
+9,N,Tool stow,N,Panel zone repositioning
+10,H,Clean Panel A start,H,Clean Panel A start
+11,H,Continue Panel A,H,Continue Panel A
+12,L,Recovery,H,Continue Panel A
+13,H,Panel A final scrub,L,Recovery
+14,N,Move to Panel B,N,Move to Panel B
+15,L,Rest posture,C,Telemetry check
+16,C,Uplink confirmation,L,Monitor systems
+17,N,Reposition and prep,N,Reposition and prep
+18,H,Begin Panel B cleaning,H,Begin Panel B cleaning
+19,H,Continue Panel B,H,Continue Panel B
+20,L,Recovery,H,Final brush down
+21,H,Final brushing,L,Recovery
+22,N,Move to junction box,N,Wipe down
+23,C,Diagnostics on panels,C,Alignment config
+24,L,Recovery,L,Recovery
+25,H,Secure mount bolts,N,Support with tools
+26,H,Tighten connectors,N,Hold cable
+27,L,Catch breath,H,Verify lock position
+28,N,Transition to legacy array,N,Transition to legacy array
+29,H,Legacy panel scrub,H,Legacy panel scrub
+30,H,Continue scrubbing,H,Continue scrubbing
+31,L,Recovery,L,Recovery
+32,N,Wipe down cables,N,Wipe down frame
+33,C,Final system diagnostics,C,Final config checks
+34,N,Inspect hardware,L,Sample collection
+35,L,Hold tether,N,Sweep and check
+36,N,Tool stow and wrap up,N,Tool stow and wrap up
+37,H,Final bolt torque,N,Support
+38,N,Check locking mech,H,Strap routing
+39,L,Pre-return recovery,L,Pre-return recovery
+40,C,Log final output,C,Vitals logging
+41,N,Start return to airlock,N,Start return to airlock
+42,N,Translation,N,Translation
+43,L,Recovery,L,Recovery
+44,C,Final suit checks,C,Final suit checks
+45,L,Repress prep,L,Repress prep

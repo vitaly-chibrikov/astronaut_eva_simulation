@@ -3,17 +3,17 @@ simulate_eva.py
 Run an EVA sequence and log astronaut state minute-by-minute
 to a CSV file.
 
-H = hard work           -> eva_work_hard_1min()
-N = normal work         -> eva_work_normal_1min()
-L = low physical work   -> eva_work_low_1min()
-C = cognitive tasks     -> eva_task_cognitive_1min()
-E = emergency response  -> eva_emergency_response_1min()
-R = rest                -> eva_rest_drift_1min()
+H = hard work           -> eva_work_hard
+N = normal work         -> eva_work_normal
+L = low physical work   -> eva_work_low
+C = cognitive tasks     -> eva_task_cognitive
+E = emergency response  -> eva_emergency_response
+R = rest                -> eva_rest_drift
 
 The CSV layout:
 
-    ┌────┬──────┬─── Minute-1 ───┬─── Minute-2 ───┬ ... ┬ Minute-14 ┐
-    │    │   B  │   1│ Task=H    │   2│ Task=H    │ ... │ 14│ Task=N │
+    ┌────┬──────┬── Minute-10 ───┬── Minute-20 ──┬ ... ┬ Minute-140 ┐
+    │    │   B  │   1│ Task=H    │   2│ Task=H    │ ... │ 14│ Task=N│
     ├────┼──────┼────────────────┼────────────────┼─────┼───────────┤
     │task│  B   │        H       │        H       │ ... │     N     │
     │heart_rate│ 70   │   ...    │       ...      │     │    ...    │
@@ -24,11 +24,13 @@ The CSV layout:
 import pandas as pd
 from astronaut import Astronaut
 
+granularity_minutes = 10
+
 # -----------------------------------------------------------------
 # 1. Task sequence 
 # -----------------------------------------------------------------  
-tasks = list("NNNNNNNNNNLLLLLRRRRRHHHRRRRRRRNNNNNCCCCCRRRRR")  
-#tasks = list("NNNNNEEEEERRRRR") 
+tasks = list("LNNRHHRCCCLLNHNLLRNHNLLRNHNLLRRCCCLNHNRRLLRLL")  
+#tasks = list("LNHECR") 
 
 # -----------------------------------------------------------------
 # 2. Initialise astronaut and logging table
@@ -69,21 +71,21 @@ log_df["MAX"] = pd.Series(
 # -----------------------------------------------------------------
 for minute, letter in enumerate(tasks, start=1):
     if letter == "H":
-        astro.eva_work_hard_1min()
+        astro.eva_work_hard(granularity_minutes)
     elif letter == "N":
-        astro.eva_work_normal_1min()
+        astro.eva_work_normal(granularity_minutes)
     elif letter == "R":
-        astro.eva_rest_drift_1min()
+        astro.eva_rest_drift(granularity_minutes)
     elif letter == "L":
-        astro.eva_work_low_1min()
+        astro.eva_work_low(granularity_minutes)
     elif letter == "C":
-        astro.eva_task_cognitive_1min()
+        astro.eva_task_cognitive(granularity_minutes)
     elif letter == "E":
-        astro.eva_emergency_response_1min()
+        astro.eva_emergency_response(granularity_minutes)
     else:
         raise ValueError(f"Unknown task letter: {letter}")
 
-    column_label = str(minute)            # "1", "2", ...
+    column_label = str(minute * granularity_minutes)        
     log_df[column_label] = snapshot(column_label, letter)
 
 # -----------------------------------------------------------------
