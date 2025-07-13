@@ -12,12 +12,12 @@ R = rest                -> eva_rest_drift
 
 The CSV layout:
 
-    ┌────┬──────┬── Minute-10 ───┬── Minute-20 ──┬ ... ┬ Minute-140 ┐
+    ┌────┬──────┬── Minute-10 ───┬─-─ Minute-20 ──┬ ... ┬ Minute-140┐
     │    │   B  │   1│ Task=H    │   2│ Task=H    │ ... │ 14│ Task=N│
     ├────┼──────┼────────────────┼────────────────┼─────┼───────────┤
     │task│  B   │        H       │        H       │ ... │     N     │
-    │heart_rate│ 70   │   ...    │       ...      │     │    ...    │
-    │... │                                    (all other variables) │
+    │heart_rate │ 70   │   ...   │       ...      │     │    ...    │
+    │... │                (all other variables)                     │
     └────┴──────┴────────────────┴────────────────┴─────┴───────────┘
 """
 
@@ -26,11 +26,20 @@ from astronaut import Astronaut
 
 granularity_minutes = 10
 
+
+df = pd.read_csv("missions/Solar_panel_installation.csv")  
+
+# Extract 'EVA-1 Type' column and convert to single string
+sequence = ''.join(df['EVA-2 Type'].astype(str).str.strip())
+
+print("EVA tasks sequence: "+sequence)
+
+
 # -----------------------------------------------------------------
 # 1. Task sequence 
 # -----------------------------------------------------------------  
-tasks = list("LNNRHHRCCCLLNHNLLRNHNLLRNHNLLRRCCCLNHNRRLLRLL")  
-#tasks = list("LNHECR") 
+#tasks = list("LNNRHHRCCCLLNHNLLRNHNLLRNHNLLRRCCCLNHNRRLLRLL") #450 minutes of normal activities
+tasks = sequence
 
 # -----------------------------------------------------------------
 # 2. Initialise astronaut and logging table
