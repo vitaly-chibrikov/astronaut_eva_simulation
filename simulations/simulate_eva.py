@@ -7,7 +7,6 @@ H = hard work           -> eva_work_hard
 N = normal work         -> eva_work_normal
 L = low physical work   -> eva_work_low
 C = cognitive tasks     -> eva_task_cognitive
-E = emergency response  -> eva_emergency_response
 R = rest                -> eva_rest_drift
 
 The CSV layout:
@@ -24,8 +23,9 @@ The CSV layout:
 import pandas as pd
 from astronaut import Astronaut
 
-granularity_minutes = 10
+Astronaut.init()
 
+granularity_minutes = 10
 
 df = pd.read_csv("missions/Solar_panel_installation.csv")  
 
@@ -38,9 +38,9 @@ print("EVA tasks sequence: "+sequence)
 # -----------------------------------------------------------------
 # 1. Task sequence 
 # -----------------------------------------------------------------  
-#tasks = list("LNNRHHRCCCLLNHNLLRNHNLLRNHNLLRRCCCLNHNRRLLRLL") #450 minutes of normal activities
-tasks = sequence
-
+#tasks = list("LNNRHHRCCCLLNHNLLRNHNLLRNHNLLRRCCCLNHNR") #390 minutes 
+#tasks = sequence
+tasks = list("LLLNNCLCLNHHRLCLLNHNRNCRNNLLNHRNCLNNNNL")
 # -----------------------------------------------------------------
 # 2. Initialise astronaut and logging table
 # -----------------------------------------------------------------
@@ -62,19 +62,6 @@ def snapshot(label: str, task_letter: str) -> pd.Series:
     data["mission_elapsed_time"] = astro.mission_elapsed_time
     return pd.Series(data, name=label)
 
-# Record baseline column "B"
-log_df["B"] = snapshot("B", "B")
-
-# -----------------------------------------------------------------
-# Insert limit columns directly after baseline
-# -----------------------------------------------------------------
-log_df["MIN"] = pd.Series(
-    {"task": "MIN", **{k: astro._LIMITS[k][0] for k in astro._BASELINE}, "mission_elapsed_time": 0.0}
-)
-log_df["MAX"] = pd.Series(
-    {"task": "MAX", **{k: astro._LIMITS[k][1] for k in astro._BASELINE}, "mission_elapsed_time": 0.0}
-)
-
 # -----------------------------------------------------------------
 # Main loop
 # -----------------------------------------------------------------
@@ -89,8 +76,6 @@ for minute, letter in enumerate(tasks, start=1):
         astro.eva_work_low(granularity_minutes)
     elif letter == "C":
         astro.eva_task_cognitive(granularity_minutes)
-    elif letter == "E":
-        astro.eva_emergency_response(granularity_minutes)
     else:
         raise ValueError(f"Unknown task letter: {letter}")
 

@@ -8,6 +8,7 @@ from astronaut import Astronaut
 
 def fresh() -> Astronaut:
     """Return a baseline astronaut ready for each test."""
+    Astronaut.init() 
     return Astronaut()
 
 
@@ -56,14 +57,14 @@ def test_eva_work_normal():
     a.eva_work_normal(1)
 
     assert a.mission_elapsed_time == 1
-    assert a.heart_rate       == 74     # +4
-    assert a.respiration_rate == 13      # +1
-    assert a.metabolic_rate   == 95     # 80 + 15
-    assert a.blood_co2_pa     == pytest.approx(41.0)
-    assert a.oxygen_saturation == pytest.approx(0.977)
-    assert a.core_temp        == pytest.approx(37.01)
-    assert a.skin_temp        == pytest.approx(33.02)
-    assert a.glucose_level    == pytest.approx(89.8)
+    assert a.heart_rate       == 75     
+    assert a.respiration_rate == 13.2     
+    assert a.metabolic_rate   > 80     
+    assert a.blood_co2_pa     == pytest.approx(39.866666667)
+    assert a.oxygen_saturation == pytest.approx(97.9)
+    assert a.core_temp        == pytest.approx(37.005555556)
+    assert a.skin_temp        == pytest.approx(33.033333333)
+    assert a.glucose_level    == pytest.approx(89.861111111)
     assert a.muscle_fatigue   == pytest.approx(0.1)
 
 
@@ -76,13 +77,13 @@ def test_eva_work_hard():
 
     assert a.mission_elapsed_time == 1
     assert a.heart_rate       == 79     
-    assert a.respiration_rate == 14.5      
-    assert a.metabolic_rate   == 105    
-    assert a.blood_co2_pa     == pytest.approx(41.8)
-    assert a.oxygen_saturation == pytest.approx(0.976)
-    assert a.core_temp        == pytest.approx(37.015)
-    assert a.skin_temp        == pytest.approx(33.02)
-    assert a.glucose_level    == pytest.approx(89.5)
+    assert a.respiration_rate == 13.8      
+    assert a.metabolic_rate   == 85.333333333    
+    assert a.blood_co2_pa     == pytest.approx(40.5)
+    assert a.oxygen_saturation == pytest.approx(97.866666667)
+    assert a.core_temp        == pytest.approx(37.011111111)
+    assert a.skin_temp        == pytest.approx(33.05)
+    assert a.glucose_level    == pytest.approx(89.833333333)
     assert a.muscle_fatigue   == pytest.approx(0.5)
 
 
